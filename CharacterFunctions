@@ -1,7 +1,7 @@
 local CharacterFunctions = {}
 
-function CharacterFunctions:Animate(character, player)
-	local Humanoid = character:WaitForChild("Humanoid")
+function CharacterFunctions.Animate(character, player)
+	local PetHumanoid = character:WaitForChild("Humanoid")
 	local Script = character:WaitForChild("Animate")
 	local pose = "Standing"
 
@@ -108,7 +108,7 @@ function CharacterFunctions:Animate(character, player)
 
 	math.randomseed(tick())
 
-	function findExistingAnimationInSet(set, anim)
+	local function findExistingAnimationInSet(set, anim)
 		if set == nil or anim == nil then
 			return 0
 		end
@@ -122,7 +122,7 @@ function CharacterFunctions:Animate(character, player)
 		return 0
 	end
 
-	function configureAnimationSet(name, fileList)
+	local function configureAnimationSet(name, fileList)
 		if (animTable[name] ~= nil) then
 			for _, connection in pairs(animTable[name].connections) do
 				connection:disconnect()
@@ -182,7 +182,7 @@ function CharacterFunctions:Animate(character, player)
 			for idx = 1, animType.count, 1 do
 				if PreloadedAnims[animType[idx].anim.AnimationId] == nil then
 					pcall(function()
-						Humanoid:LoadAnimation(animType[idx].anim)
+						PetHumanoid:LoadAnimation(animType[idx].anim)
 					end)
 					PreloadedAnims[animType[idx].anim.AnimationId] = true
 				end				
@@ -190,7 +190,7 @@ function CharacterFunctions:Animate(character, player)
 		end
 	end
 
-	function configureAnimationSetOld(name, fileList)
+	local function configureAnimationSetOld(name, fileList)
 		if (animTable[name] ~= nil) then
 			for _, connection in pairs(animTable[name].connections) do
 				connection:disconnect()
@@ -247,13 +247,13 @@ function CharacterFunctions:Animate(character, player)
 		for i, animType in pairs(animTable) do
 			for idx = 1, animType.count, 1 do
 				pcall(function()
-					Humanoid:LoadAnimation(animType[idx].anim)
+					PetHumanoid:LoadAnimation(animType[idx].anim)
 				end)
 			end
 		end
 	end
 
-	function scriptChildModified(child)
+	local function scriptChildModified(child)
 		local fileList = animNames[child.Name]
 		if (fileList ~= nil) then
 			configureAnimationSet(child.Name, fileList)
@@ -263,7 +263,7 @@ function CharacterFunctions:Animate(character, player)
 	Script.ChildAdded:connect(scriptChildModified)
 	Script.ChildRemoved:connect(scriptChildModified)
 
-	local animator = if Humanoid then Humanoid:FindFirstChildOfClass("Animator") else nil
+	local animator = if PetHumanoid then PetHumanoid:FindFirstChildOfClass("Animator") else nil
 	if animator then
 		local animTracks = animator:GetPlayingAnimationTracks()
 		for i,track in ipairs(animTracks) do
@@ -287,7 +287,7 @@ function CharacterFunctions:Animate(character, player)
 
 	local currentlyPlayingEmote = false
 
-	function stopAllAnimations()
+	local function stopAllAnimations()
 		local oldAnim = currentAnim
 
 		if (emoteNames[oldAnim] ~= nil and emoteNames[oldAnim] == false) then
@@ -324,18 +324,18 @@ function CharacterFunctions:Animate(character, player)
 		return oldAnim
 	end
 
-	function getHeightScale()
-		if Humanoid then
-			if not Humanoid.AutomaticScalingEnabled then
+	local function getHeightScale()
+		if PetHumanoid then
+			if not PetHumanoid.AutomaticScalingEnabled then
 				return getRigScale()
 			end
 
-			local scale = Humanoid.HipHeight / HumanoidHipHeight
+			local scale = PetHumanoid.HipHeight / HumanoidHipHeight
 			if AnimationSpeedDampeningObject == nil then
 				AnimationSpeedDampeningObject = Script:FindFirstChild("ScaleDampeningPercent")
 			end
 			if AnimationSpeedDampeningObject ~= nil then
-				scale = 1 + (Humanoid.HipHeight - HumanoidHipHeight) * AnimationSpeedDampeningObject.Value / HumanoidHipHeight
+				scale = 1 + (PetHumanoid.HipHeight - HumanoidHipHeight) * AnimationSpeedDampeningObject.Value / HumanoidHipHeight
 			end
 			return scale
 		end	
@@ -376,7 +376,7 @@ function CharacterFunctions:Animate(character, player)
 		runAnimTrack:AdjustSpeed(timeWarp)
 	end
 
-	function setAnimationSpeed(speed)
+	local function setAnimationSpeed(speed)
 		if currentAnim == "walk" then
 			setRunSpeed(speed)
 		else
@@ -387,7 +387,9 @@ function CharacterFunctions:Animate(character, player)
 		end
 	end
 
-	function keyFrameReachedFunc(frameName)
+	local playAnimation = nil
+
+	local function keyFrameReachedFunc(frameName)
 		if (frameName == "End") then
 			if currentAnim == "walk" then
 				if userNoUpdateOnLoop == true then
@@ -417,13 +419,13 @@ function CharacterFunctions:Animate(character, player)
 				end
 
 				local animSpeed = currentAnimSpeed
-				playAnimation(repeatAnim, 0.15, Humanoid)
+				playAnimation(repeatAnim, 0.15, PetHumanoid)
 				setAnimationSpeed(animSpeed)
 			end
 		end
 	end
 
-	function rollAnimation(animName)
+	local function rollAnimation(animName)
 		local roll = math.random(1, animTable[animName].totalWeight) 
 		local origRoll = roll
 		local idx = 1
@@ -484,7 +486,7 @@ function CharacterFunctions:Animate(character, player)
 		end
 	end
 
-	function playAnimation(animName, transitionTime, humanoid) 	
+	playAnimation = function(animName, transitionTime, humanoid) 	
 		local idx = rollAnimation(animName)
 		local anim = animTable[animName][idx].anim
 
@@ -492,7 +494,7 @@ function CharacterFunctions:Animate(character, player)
 		currentlyPlayingEmote = false
 	end
 
-	function playEmote(emoteAnim, transitionTime, humanoid)
+	local function playEmote(emoteAnim, transitionTime, humanoid)
 		switchToAnim(emoteAnim, emoteAnim.Name, transitionTime, humanoid)
 		currentlyPlayingEmote = true
 	end
@@ -502,14 +504,16 @@ function CharacterFunctions:Animate(character, player)
 	local toolAnimInstance = nil
 	local currentToolAnimKeyframeHandler = nil
 
-	function toolKeyFrameReachedFunc(frameName)
+	local playToolAnimation = nil
+
+	local function toolKeyFrameReachedFunc(frameName)
 		if (frameName == "End") then
-			playToolAnimation(toolAnimName, 0.0, Humanoid)
+			playToolAnimation(toolAnimName, 0.0, PetHumanoid)
 		end
 	end
 
 
-	function playToolAnimation(animName, transitionTime, humanoid, priority)	 		
+	playToolAnimation = function(animName, transitionTime, humanoid, priority)	 		
 		local idx = rollAnimation(animName)
 		local anim = animTable[animName][idx].anim
 
@@ -536,7 +540,7 @@ function CharacterFunctions:Animate(character, player)
 		end
 	end
 
-	function stopToolAnimations()
+	local function stopToolAnimations()
 		local oldAnim = toolAnimName
 
 		if (currentToolAnimKeyframeHandler ~= nil) then
@@ -554,100 +558,100 @@ function CharacterFunctions:Animate(character, player)
 		return oldAnim
 	end
 
-	function onRunning(speed)
+	local function onRunning(speed)
 		local heightScale = if userAnimateScaleRun then getHeightScale() else 1
 
-		local movedDuringEmote = currentlyPlayingEmote and Humanoid.MoveDirection == Vector3.new(0, 0, 0)
-		local speedThreshold = movedDuringEmote and (Humanoid.WalkSpeed / heightScale) or 0.75
+		local movedDuringEmote = currentlyPlayingEmote and PetHumanoid.MoveDirection == Vector3.new(0, 0, 0)
+		local speedThreshold = movedDuringEmote and (PetHumanoid.WalkSpeed / heightScale) or 0.75
 		if speed > speedThreshold * heightScale then
 			local scale = 16.0
-			playAnimation("walk", 0.2, Humanoid)
+			playAnimation("walk", 0.2, PetHumanoid)
 			setAnimationSpeed(speed / scale)
 			pose = "Running"
 		else
 			if emoteNames[currentAnim] == nil and not currentlyPlayingEmote then
-				playAnimation("idle", 0.2, Humanoid)
+				playAnimation("idle", 0.2, PetHumanoid)
 				pose = "Standing"
 			end
 		end
 	end
 
-	function onDied()
+	local function onDied()
 		pose = "Dead"
 	end
 
-	function onJumping()
-		playAnimation("jump", 0.1, Humanoid)
+	local function onJumping()
+		playAnimation("jump", 0.1, PetHumanoid)
 		jumpAnimTime = jumpAnimDuration
 		pose = "Jumping"
 	end
 
-	function onClimbing(speed)
+	local function onClimbing(speed)
 		if userAnimateScaleRun then
 			speed /= getHeightScale()
 		end
 		local scale = 5.0
-		playAnimation("climb", 0.1, Humanoid)
+		playAnimation("climb", 0.1, PetHumanoid)
 		setAnimationSpeed(speed / scale)
 		pose = "Climbing"
 	end
 
-	function onGettingUp()
+	local function onGettingUp()
 		pose = "GettingUp"
 	end
 
-	function onFreeFall()
+	local function onFreeFall()
 		if (jumpAnimTime <= 0) then
-			playAnimation("fall", fallTransitionTime, Humanoid)
+			playAnimation("fall", fallTransitionTime, PetHumanoid)
 		end
 		pose = "FreeFall"
 	end
 
-	function onFallingDown()
+	local function onFallingDown()
 		pose = "FallingDown"
 	end
 
-	function onSeated()
+	local function onSeated()
 		pose = "Seated"
 	end
 
-	function onPlatformStanding()
+	local function onPlatformStanding()
 		pose = "PlatformStanding"
 	end
 
-	function onSwimming(speed)
+	local function onSwimming(speed)
 		if userAnimateScaleRun then
 			speed /= getHeightScale()
 		end
 		if speed > 1.00 then
 			local scale = 10.0
-			playAnimation("swim", 0.4, Humanoid)
+			playAnimation("swim", 0.4, PetHumanoid)
 			setAnimationSpeed(speed / scale)
 			pose = "Swimming"
 		else
-			playAnimation("swimidle", 0.4, Humanoid)
+			playAnimation("swimidle", 0.4, PetHumanoid)
 			pose = "Standing"
 		end
 	end
 
-	function animateTool()
+	local function animateTool()
 		if (toolAnim == "None") then
-			playToolAnimation("toolnone", toolTransitionTime, Humanoid, Enum.AnimationPriority.Idle)
+			playToolAnimation("toolnone", toolTransitionTime, PetHumanoid, Enum.AnimationPriority.Idle)
 			return
 		end
 
 		if (toolAnim == "Slash") then
-			playToolAnimation("toolslash", 0, Humanoid, Enum.AnimationPriority.Action)
+			playToolAnimation("toolslash", 0, PetHumanoid, Enum.AnimationPriority.Action)
 			return
 		end
 
 		if (toolAnim == "Lunge") then
-			playToolAnimation("toollunge", 0, Humanoid, Enum.AnimationPriority.Action)
+			playToolAnimation("toollunge", 0, PetHumanoid, Enum.AnimationPriority.Action)
 			return
 		end
 	end
 
-	function getToolAnim(tool)
+	local function getToolAnim(tool)
 		for _, c in ipairs(tool:GetChildren()) do
 			if c.Name == "toolanim" and c.className == "StringValue" then
 				return c
@@ -658,7 +662,7 @@ function CharacterFunctions:Animate(character, player)
 
 	local lastTick = 0
 
-	function stepAnimate(currentTime)
+	local function stepAnimate(currentTime)
 		local amplitude = 1
 		local frequency = 1
 		local deltaTime = currentTime - lastTick
@@ -672,12 +676,12 @@ function CharacterFunctions:Animate(character, player)
 		end
 
 		if (pose == "FreeFall" and jumpAnimTime <= 0) then
-			playAnimation("fall", fallTransitionTime, Humanoid)
+			playAnimation("fall", fallTransitionTime, PetHumanoid)
 		elseif (pose == "Seated") then
-			playAnimation("sit", 0.5, Humanoid)
+			playAnimation("sit", 0.5, PetHumanoid)
 			return
 		elseif (pose == "Running") then
-			playAnimation("walk", 0.2, Humanoid)
+			playAnimation("walk", 0.2, PetHumanoid)
 		elseif (pose == "Dead" or pose == "GettingUp" or pose == "FallingDown" or pose == "Seated" or pose == "PlatformStanding") then
 			stopAllAnimations()
 			amplitude = 0.1
@@ -709,16 +713,16 @@ function CharacterFunctions:Animate(character, player)
 		end
 	end
 
-	Humanoid.Died:connect(onDied)
-	Humanoid.Running:connect(onRunning)
-	Humanoid.Jumping:connect(onJumping)
-	Humanoid.Climbing:connect(onClimbing)
-	Humanoid.GettingUp:connect(onGettingUp)
-	Humanoid.FreeFalling:connect(onFreeFall)
-	Humanoid.FallingDown:connect(onFallingDown)
-	Humanoid.Seated:connect(onSeated)
-	Humanoid.PlatformStanding:connect(onPlatformStanding)
-	Humanoid.Swimming:connect(onSwimming)
+	PetHumanoid.Died:connect(onDied)
+	PetHumanoid.Running:connect(onRunning)
+	PetHumanoid.Jumping:connect(onJumping)
+	PetHumanoid.Climbing:connect(onClimbing)
+	PetHumanoid.GettingUp:connect(onGettingUp)
+	PetHumanoid.FreeFalling:connect(onFreeFall)
+	PetHumanoid.FallingDown:connect(onFallingDown)
+	PetHumanoid.Seated:connect(onSeated)
+	PetHumanoid.PlatformStanding:connect(onPlatformStanding)
+	PetHumanoid.Swimming:connect(onSwimming)
 
 	player.Chatted:connect(function(msg)
 		local emote = ""
@@ -729,7 +733,7 @@ function CharacterFunctions:Animate(character, player)
 		end
 
 		if (pose == "Standing" and emoteNames[emote] ~= nil) then
-			playAnimation(emote, EMOTE_TRANSITION_TIME, Humanoid)
+			playAnimation(emote, EMOTE_TRANSITION_TIME, PetHumanoid)
 		end
 	end)
 
@@ -739,11 +743,11 @@ function CharacterFunctions:Animate(character, player)
 		end
 
 		if emoteNames[emote] ~= nil then
-			playAnimation(emote, EMOTE_TRANSITION_TIME, Humanoid)
+			playAnimation(emote, EMOTE_TRANSITION_TIME, PetHumanoid)
 
 			return true, currentAnimTrack
 		elseif typeof(emote) == "Instance" and emote:IsA("Animation") then
-			playEmote(emote, EMOTE_TRANSITION_TIME, Humanoid)
+			playEmote(emote, EMOTE_TRANSITION_TIME, PetHumanoid)
 
 			return true, currentAnimTrack
 		end
@@ -752,16 +756,14 @@ function CharacterFunctions:Animate(character, player)
 	end
 
 	if character.Parent ~= nil then
-		playAnimation("idle", 0.1, Humanoid)
+		playAnimation("idle", 0.1, PetHumanoid)
 		pose = "Standing"
 	end
 
-	task.spawn(function()
-		while character.Parent ~= nil do
-			local _, currentGameTime = wait(0.1)
-			stepAnimate(currentGameTime)
-		end
-	end)
+	while character.Parent ~= nil do
+		local _, currentGameTime = wait(0.1)
+		stepAnimate(currentGameTime)
+	end
 end
 
 return CharacterFunctions
